@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  UserId     Int          @id @default(autoincrement())
+  UserName   String       @unique
+  Email      String
+  Password   String
+  UserType   String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Enrollment Enrollment[]
+  Payment    Payment[]
+  Result     Result[]
+
+  @@map("users")
+}
+
+model Course {
+  CourseID      Int             @id @default(autoincrement())
+  CourseName    String
+  Description   String
+  Price         Float           @default(0.0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  CourseContent CourseContent[]
+  Enrollment    Enrollment[]
+  Quiz          Quiz[]
+  Result        Result[]
+
+  @@map("course")
+}
+
+model CourseContent {
+  ContentID   Int    @id @default(autoincrement())
+  CourseID    Int
+  ContentType String
+  Content     String
+  VideoURL    String
+
+  Course    Course   @relation(fields: [CourseID], references: [CourseID])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courseContent")
+}
+
+model Enrollment {
+  EnrollmentID     Int      @id @default(autoincrement())
+  UserID           Int
+  CourseID         Int
+  EnrollmentDate   DateTime
+  CompletionStatus String
+
+  User   User   @relation(fields: [UserID], references: [UserId])
+  Course Course @relation(fields: [CourseID], references: [CourseID])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("enrollment")
+}
+
+model Payment {
+  PaymentID     Int      @id @default(autoincrement())
+  UserID        Int
+  PaymentDate   DateTime
+  Amount        Float    @default(0.0)
+  PaymentMethod String
+
+  User User @relation(fields: [UserID], references: [UserId])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payment")
+}
+
+model Quiz {
+  QuizID      Int    @id @default(autoincrement())
+  CourseID    Int
+  QuizName    String
+  Description String
+  TotalMarks  Int
+
+  Course Course   @relation(fields: [CourseID], references: [CourseID])
+  Result Result[]
+
+  @@map("quiz")
+}
+
+model Result {
+  ResultID Int @id @default(autoincrement())
+  UserID   Int
+  CourseID Int
+  QuizID   Int
+  Score    Int
+
+  User   User   @relation(fields: [UserID], references: [UserId])
+  Course Course @relation(fields: [CourseID], references: [CourseID])
+  Quiz   Quiz   @relation(fields: [QuizID], references: [QuizID])
+
+  @@map("result")
+}
